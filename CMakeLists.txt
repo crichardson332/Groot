@@ -5,6 +5,11 @@ project(groot)
 find_package(Qt5 COMPONENTS  Core Widgets Gui OpenGL Xml Svg)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}  "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
+set(CMAKE_PREFIX_PATH
+    ${CMAKE_PREFIX_PATH}
+    "/opt/gtri/core/${CMAKE_LIBRARY_ARCHITECTURE}"
+    )
+
 if(NOT CMAKE_VERSION VERSION_LESS 3.1)
     set(CMAKE_CXX_STANDARD 11)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -27,10 +32,10 @@ if(catkin_FOUND)
   message(STATUS "------------------------------------------------")
 
   catkin_package(
-    INCLUDE_DIRS 
+    INCLUDE_DIRS
     LIBRARIES qt_node_editor
     CATKIN_DEPENDS behaviortree_cpp_v3
-    DEPENDS 
+    DEPENDS
     )
 endif(catkin_FOUND)
 #############################################################
@@ -62,12 +67,8 @@ set(CATKIN_ENABLE_TESTING OFF CACHE BOOL "")
 
 if(NOT catkin_FOUND)
     # look for BehaviorTree.CPP on the system
-    find_package(BehaviorTree)
-    if (NOT BehaviorTree_FOUND)
-        # use git submodule only if you are not compiling with catkin
-        add_subdirectory( depend/BehaviorTree.CPP )
-        include_directories( depend/BehaviorTree.CPP/include )
-    endif()
+    # find_package(BehaviorTree)
+    find_package(BehaviorTreeV3 REQUIRED)
 endif()
 
 ##########################################
@@ -131,7 +132,7 @@ SET(GROOT_DEPENDENCIES QtNodeEditor )
 if( catkin_FOUND )
     SET(GROOT_DEPENDENCIES ${GROOT_DEPENDENCIES} ${catkin_LIBRARIES} )
 else()
-    SET(GROOT_DEPENDENCIES ${GROOT_DEPENDENCIES} behaviortree_cpp_v3 )
+    SET(GROOT_DEPENDENCIES ${GROOT_DEPENDENCIES} BT::behaviortree_cpp_v3 )
 endif()
 
 if( ZMQ_FOUND )
@@ -142,7 +143,7 @@ target_link_libraries(behavior_tree_editor ${GROOT_DEPENDENCIES} )
 
 
 add_executable(Groot ./bt_editor/main.cpp  ${RESOURCE_FILES})
-target_link_libraries(Groot behavior_tree_editor )
+target_link_libraries(Groot behavior_tree_editor BT::behaviortree_cpp_v3 )
 
 add_subdirectory(test)
 
@@ -156,18 +157,17 @@ else()
     set( GROOT_LIB_DESTINATION   lib )
     set( GROOT_INC_DESTINATION   include )
     set( GROOT_BIN_DESTINATION   bin )
-    
+
     INSTALL( FILES ${CMAKE_CURRENT_SOURCE_DIR}/groot_icon.png
 			 DESTINATION share/icons/hicolor/256x256)
-			 
+
 	INSTALL( FILES ${CMAKE_CURRENT_SOURCE_DIR}/Groot.desktop
 			 DESTINATION share/applications)
-    
+
 endif()
 
-INSTALL(TARGETS behavior_tree_editor LIBRARY DESTINATION ${GROOT_LIB_DESTINATION} )
+INSTALL(
+    TARGETS behavior_tree_editor
+    LIBRARY DESTINATION ${GROOT_LIB_DESTINATION}
+    ARCHIVE DESTINATION ${GROOT_LIB_DESTINATION} )
 INSTALL(TARGETS Groot RUNTIME DESTINATION ${GROOT_BIN_DESTINATION} )
-
-
-
-
